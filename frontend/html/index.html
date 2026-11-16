@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMAGE GENERATION WEB UI - Hybrid Cloud-to-Local AI Architecture</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Directional Wave / Fill Layer -->
+    <div id="wave-screen-overlay" class="wave-overlay" aria-hidden="true">
+        <div class="wave-beam wave-beam-1"></div>
+        <div class="wave-beam wave-beam-2"></div>
+        <div class="wave-beam wave-beam-3"></div>
+    </div>
+
+    <!-- Main Container matching 1379 x 1024 SVG canvas -->
+    <div class="app-canvas">
+
+        <!-- Title Area -->
+        <header class="main-header">
+            <h1 class="main-title">IMAGE GENERATION WEB UI</h1>
+            <p class="main-subtitle">Hybrid Cloud-to-Local AI Architecture</p>
+        </header>
+
+        <!-- Workspace Grid (Step 1 & Step 2) -->
+        <main class="workspace-grid">
+
+            <!-- ========================================================
+                 STEP 1: AUTENTIKASI API KEY & CONNECTION (Active on load)
+                 ======================================================== -->
+            <section id="step1-card" class="panel-card step1-panel active-state">
+                <div class="card-header">
+                    <h2 class="header-text">STEP 1 : AUTENTIKASI API KEY &amp; CONNECTION</h2>
+                </div>
+
+                <div class="card-body">
+                    <!-- URL Tunnel Gateway -->
+                    <div class="form-group">
+                        <label for="tunnel-url-input" class="field-label">URL Tunnel Gateway (Ngrok /
+                            Cloudflare):</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="tunnel-url-input" class="glass-input"
+                                placeholder="https://xxxx.trycloudflare.com atau https://xxxx.ngrok-free.app" value=""
+                                autocomplete="off" spellcheck="false">
+                        </div>
+                    </div>
+
+                    <!-- Custom API KEY -->
+                    <div class="form-group">
+                        <label for="api-key-input" class="field-label">Custom API KEY :</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="api-key-input" class="glass-input"
+                                placeholder="sk-local-gpu-hybrid-2026" value="sk-local-gpu-hybrid-2026"
+                                autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- Button Verifikasi -->
+                    <div class="form-group btn-group">
+                        <button type="button" id="btn-verify-key" class="btn-action btn-verify">
+                            <span class="btn-text">CEK DAN VERIFIKASI API KEY</span>
+                            <span class="btn-spinner" aria-hidden="true"></span>
+                        </button>
+                    </div>
+
+                    <!-- Status Display Box -->
+                    <div class="form-group status-group">
+                        <div id="connection-status-box" class="status-box status-idle">
+                            <span class="status-prefix">Status:</span>
+                            <span id="status-message" class="status-content">Menunggu verifikasi API Key &amp; URL
+                                Tunnel...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 STEP 2: MAIN WORKSPACE GENERATOR (Gray & Locked on load)
+                 ======================================================== -->
+            <section id="step2-card" class="panel-card step2-panel locked-state">
+
+                <!-- Hard Click-Shield Overlay preventing ANY click/focus when locked -->
+                <div id="step2-lock-shield" class="lock-shield"
+                    title="Selesaikan verifikasi API Key pada Step 1 terlebih dahulu">
+                    <div class="lock-badge">
+                        <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span>Selesaikan Step 1</span>
+                    </div>
+                </div>
+
+                <div class="card-header">
+                    <h2 class="header-text">STEP 2 : MAIN WORKSPACE GENERATOR</h2>
+                </div>
+
+                <div class="card-body generator-layout">
+
+                    <!-- Left Column of Step 2: Controls -->
+                    <div class="controls-col">
+
+                        <!-- Prompt -->
+                        <div class="form-group">
+                            <label for="prompt-input" class="field-label">Prompt :</label>
+                            <textarea id="prompt-input" class="glass-textarea" rows="4"
+                                placeholder="Masukkan prompt pembuatan gambar..."
+                                disabled>A futuristic cybernetic cat sitting on a neon rooftop, cyberpunk city in the background, highly detailed, 8k resolution, cinematic lighting</textarea>
+                        </div>
+
+                        <!-- Negative Prompt -->
+                        <div class="form-group">
+                            <label for="negative-prompt-input" class="field-label">Negative prompt</label>
+                            <input type="text" id="negative-prompt-input" class="glass-input"
+                                placeholder="Elemen yang ingin dihindari..."
+                                value="blurry, distorted, low quality, bad anatomy, out of frame, watermark" disabled>
+                        </div>
+
+                        <!-- Sliders Row: Inference Step & CFG Scale -->
+                        <div class="form-row sliders-row">
+                            <!-- Inference Step Slider -->
+                            <div class="form-col slider-col">
+                                <div class="slider-header">
+                                    <label for="steps-slider" class="field-label">Inference Step</label>
+                                    <span id="steps-value-display" class="slider-val">20</span>
+                                </div>
+                                <div class="slider-wrapper">
+                                    <input type="range" id="steps-slider" class="glass-slider" min="10" max="50"
+                                        step="1" value="20" disabled>
+                                    <div class="slider-fill-track" id="steps-fill"></div>
+                                </div>
+                            </div>
+
+                            <!-- CFG Scale Slider -->
+                            <div class="form-col slider-col">
+                                <div class="slider-header">
+                                    <label for="cfg-slider" class="field-label">CFG Scale</label>
+                                    <span id="cfg-value-display" class="slider-val">7,5</span>
+                                </div>
+                                <div class="slider-wrapper">
+                                    <input type="range" id="cfg-slider" class="glass-slider" min="1.0" max="15.0"
+                                        step="0.5" value="7.5" disabled>
+                                    <div class="slider-fill-track" id="cfg-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dropdowns / Inputs Row: Resolution & Seed -->
+                        <div class="form-row dropdowns-row">
+                            <!-- Resolution Dropdown -->
+                            <div class="form-col">
+                                <label for="resolution-select" class="field-label">Resolusi (Optimal 4GB VRAM)</label>
+                                <div class="select-wrapper">
+                                    <select id="resolution-select" class="glass-select" disabled>
+                                        <option value="512x512" selected>512 x 512</option>
+                                        <option value="512x768">512 x 768</option>
+                                        <option value="768x512">768 x 512</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Seed Input -->
+                            <div class="form-col">
+                                <label for="seed-input" class="field-label">Seed (-1 untuk Random)</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="seed-input" class="glass-input" value="-1" placeholder="-1"
+                                        disabled>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <div class="form-group generate-btn-group">
+                            <button type="button" id="btn-generate-image" class="btn-generate" disabled>
+                                <span class="btn-generate-text">Generate Image (kirim ke GPU lokal)</span>
+                                <span class="generate-spinner" aria-hidden="true"></span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Center Vertical Divider Line (matches SVG x=1051.5) -->
+                    <div class="vertical-divider" aria-hidden="true"></div>
+
+                    <!-- Right Column of Step 2: Output & Metrics -->
+                    <div class="output-col">
+                        <label class="field-label">Hasil Generasi (Dari GPU WorkStasion)</label>
+
+                        <!-- Generated Image Display Box -->
+                        <div id="image-display-box" class="image-box" title="Klik untuk memperbesar gambar">
+                            <div id="image-placeholder-content" class="image-placeholder">
+                                <p class="placeholder-main">Gambar hasil infersi dari workstation GPU lokal akan
+                                    ditampilkan disini.</p>
+                                <p class="placeholder-sub">*saat klik gambar diperbesar*</p>
+                            </div>
+                            <img id="generated-image" class="result-image" alt="Hasil Generasi Stable Diffusion"
+                                style="display: none;">
+                        </div>
+
+                        <!-- Inference Metrics Box (2x2 Grid) -->
+                        <div class="metrics-box">
+                            <div class="metric-cell">
+                                <span class="metric-label">Hardware</span>
+                                <span id="metric-hardware" class="metric-val">-</span>
+                            </div>
+                            <div class="metric-cell">
+                                <span class="metric-label">Inference Time</span>
+                                <span id="metric-time" class="metric-val">-</span>
+                            </div>
+                            <div class="metric-cell">
+                                <span class="metric-label">Resolution</span>
+                                <span id="metric-resolution" class="metric-val">-</span>
+                            </div>
+                            <div class="metric-cell">
+                                <span class="metric-label">Status</span>
+                                <span id="metric-status" class="metric-val status-badge-idle">idle / processing</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Image Lightbox Modal for enlarged view -->
+    <div id="image-modal" class="image-modal" aria-hidden="true">
+        <div class="modal-backdrop" id="modal-backdrop"></div>
+        <div class="modal-content">
+            <button type="button" class="modal-close-btn" id="modal-close">&times;</button>
+            <img id="modal-enlarged-img" class="modal-img" alt="Enlarged Output">
+            <div class="modal-caption" id="modal-caption">Generated Image &bull; Workstation GPU</div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
