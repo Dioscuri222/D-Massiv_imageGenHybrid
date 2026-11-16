@@ -412,4 +412,235 @@ document.addEventListener("DOMContentLoaded", () => {
             closeModal();
         }
     });
+
+    // -------------------------------------------------------------------------
+    // Ambient Background: Flowing Isolines + Pointer-Reactive Aura
+    // -------------------------------------------------------------------------
+    initAmbientBackground();
+
+    function initAmbientBackground() {
+        const canvas = document.getElementById("isolines-canvas");
+        if (!canvas || !canvas.getContext) return;
+
+        const ctx = canvas.getContext("2d");
+        const cards = Array.from(document.querySelectorAll(".panel-card"));
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        let width = 0;
+        let height = 0;
+        let dpr = 1;
+
+        const pointer = {
+            targetX: window.innerWidth * 0.5,
+            targetY: window.innerHeight * 0.5,
+            x: window.innerWidth * 0.5,
+            y: window.innerHeight * 0.5,
+            active: false,
+            strength: 0,
+            bgAuraStrength: 0
+        };
+
+        let activeCard = null;
+
+        function resizeCanvas() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = Math.floor(width * dpr);
+            canvas.height = Math.floor(height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        resizeCanvas();
+        window.addEventListener("resize", () => {
+            resizeCanvas();
+            if (reducedMotion) drawIsolines(0);
+        });
+
+        window.addEventListener("pointermove", (e) => {
+            pointer.targetX = e.clientX;
+            pointer.targetY = e.clientY;
+            pointer.active = true;
+        }, { passive: true });
+
+        document.addEventListener("pointerleave", () => {
+            pointer.active = false;
+            if (activeCard) {
+                activeCard.classList.remove("has-aura");
+                activeCard = null;
+            }
+        });
+
+        function addRoundedRectPath(c, x, y, w, h, r) {
+            const radius = Math.min(r, w / 2, h / 2);
+            c.moveTo(x + radius, y);
+            c.lineTo(x + w - radius, y);
+            c.quadraticCurveTo(x + w, y, x + w, y + radius);
+            c.lineTo(x + w, y + h - radius);
+            c.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+            c.lineTo(x + radius, y + h);
+            c.quadraticCurveTo(x, y + h, x, y + h - radius);
+            c.lineTo(x, y + radius);
+            c.quadraticCurveTo(x, y, x + radius, y);
+            c.closePath();
+        }
+
+        function updateCardAura() {
+            if (!pointer.active) {
+                if (activeCard) {
+                    activeCard.classList.remove("has-aura");
+                    activeCard = null;
+                }
+                return false;
+            }
+
+            let hitCard = null;
+            for (const card of cards) {
+                const rect = card.getBoundingClientRect();
+                if (
+                    pointer.x >= rect.left &&
+                    pointer.x <= rect.right &&
+                    pointer.y >= rect.top &&
+                    pointer.y <= rect.bottom
+                ) {
+                    hitCard = card;
+                    card.style.setProperty("--card-aura-x", `${(pointer.x - rect.left).toFixed(1)}px`);
+                    card.style.setProperty("--card-aura-y", `${(pointer.y - rect.top).toFixed(1)}px`);
+                    break;
+                }
+            }
+
+            if (activeCard && activeCard !== hitCard) {
+                activeCard.classList.remove("has-aura");
+            }
+            if (hitCard) {
+                hitCard.classList.add("has-aura");
+            }
+            activeCard = hitCard;
+            return Boolean(hitCard);
+        }
+
+        function drawBackgroundAura() {
+            if (pointer.bgAuraStrength <= 0.005) return;
+
+            ctx.save();
+            // Clip out the 2 cards so when pointer is between them, only the middle background gap is visible
+            ctx.beginPath();
+            ctx.rect(0, 0, width, height);
+            for (const card of cards) {
+                const rect = card.getBoundingClientRect();
+                addRoundedRectPath(ctx, rect.left, rect.top, rect.width, rect.height, 15);
+            }
+            ctx.clip("evenodd");
+
+            const outerRadius = 280;
+            const outerGrad = ctx.createRadialGradient(
+                pointer.x, pointer.y, 0,
+                pointer.x, pointer.y, outerRadius
+            );
+            outerGrad.addColorStop(0, `rgba(0, 212, 255, ${(0.22 * pointer.bgAuraStrength).toFixed(3)})`);
+            outerGrad.addColorStop(0.4, `rgba(73, 118, 140, ${(0.22 * pointer.bgAuraStrength).toFixed(3)})`);
+            outerGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+            ctx.fillStyle = outerGrad;
+            ctx.beginPath();
+            ctx.arc(pointer.x, pointer.y, outerRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            const innerRadius = 120;
+            const innerGrad = ctx.createRadialGradient(
+                pointer.x, pointer.y, 0,
+                pointer.x, pointer.y, innerRadius
+            );
+            innerGrad.addColorStop(0, `rgba(165, 243, 252, ${(0.18 * pointer.bgAuraStrength).toFixed(3)})`);
+            innerGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+            ctx.fillStyle = innerGrad;
+            ctx.beginPath();
+            ctx.arc(pointer.x, pointer.y, innerRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawIsolines(timeSec) {
+            ctx.clearRect(0, 0, width, height);
+
+            const lineCount = 18;
+            const stepX = 22;
+            const margin = 60;
+            const cols = Math.ceil((width + margin * 2) / stepX) + 1;
+            const auraRadius = 260;
+
+            for (let i = 0; i < lineCount; i++) {
+                const ratio = i / (lineCount - 1);
+                const baseY = -height * 0.08 + ratio * (height * 1.16);
+                const phase = i * 0.42;
+
+                const distY = Math.abs(baseY - pointer.y);
+                const bandGlow = pointer.bgAuraStrength * Math.max(0, 1 - distY / (auraRadius * 1.25));
+                const alpha = 0.065 + (1 - Math.abs(ratio - 0.5) * 1.2) * 0.06 + bandGlow * 0.16;
+
+                ctx.beginPath();
+                ctx.lineWidth = 1 + bandGlow * 0.7;
+                ctx.strokeStyle = bandGlow > 0.18
+                    ? `rgba(125, 226, 255, ${Math.min(alpha, 0.36).toFixed(3)})`
+                    : `rgba(148, 206, 228, ${Math.max(alpha, 0.04).toFixed(3)})`;
+
+                for (let c = 0; c < cols; c++) {
+                    const x = -margin + c * stepX;
+
+                    const wave1 = Math.sin(x * 0.0032 + timeSec * 0.35 + phase) * 34;
+                    const wave2 = Math.cos(x * 0.0068 - timeSec * 0.24 + phase * 1.4) * 16;
+                    const wave3 = Math.sin((x + baseY) * 0.0021 + timeSec * 0.18) * 22;
+
+                    let y = baseY + wave1 + wave2 + wave3;
+
+                    if (pointer.strength > 0.005) {
+                        const dx = x - pointer.x;
+                        const dy = y - pointer.y;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq < auraRadius * auraRadius) {
+                            const dist = Math.sqrt(distSq) || 1;
+                            const falloff = Math.pow(1 - dist / auraRadius, 2);
+                            const push = falloff * 38 * pointer.strength;
+                            y += (dy / dist) * push;
+                        }
+                    }
+
+                    if (c === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            drawBackgroundAura();
+        }
+
+        function animate(now) {
+            if (!document.hidden) {
+                pointer.x += (pointer.targetX - pointer.x) * 0.12;
+                pointer.y += (pointer.targetY - pointer.y) * 0.12;
+
+                const isOverCard = updateCardAura();
+                const targetStrength = pointer.active ? 1 : 0;
+                const targetBgStrength = pointer.active && !isOverCard ? 1 : 0;
+
+                pointer.strength += (targetStrength - pointer.strength) * 0.08;
+                pointer.bgAuraStrength += (targetBgStrength - pointer.bgAuraStrength) * 0.1;
+
+                drawIsolines(now * 0.001);
+            }
+            window.requestAnimationFrame(animate);
+        }
+
+        if (reducedMotion) {
+            drawIsolines(0);
+        } else {
+            window.requestAnimationFrame(animate);
+        }
+    }
 });

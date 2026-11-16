@@ -64,6 +64,18 @@ body {
 }
 
 /* ==========================================================================
+   AMBIENT BACKGROUND: FLOWING ISOLINES
+   ========================================================================== */
+.isolines-bg {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ==========================================================================
    APP CANVAS (Matching SVG 1379 x 1024 viewBox)
    ========================================================================== */
 .app-canvas {
@@ -147,6 +159,42 @@ body {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 60%);
     pointer-events: none;
     z-index: 2;
+}
+
+/* Pointer-Reactive Aura as Card Background when hovered */
+.panel-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    --card-aura-x: 50%;
+    --card-aura-y: 50%;
+    background:
+        radial-gradient(
+            360px circle at var(--card-aura-x) var(--card-aura-y),
+            rgba(0, 212, 255, 0.18) 0%,
+            rgba(73, 118, 140, 0.22) 38%,
+            transparent 72%
+        ),
+        radial-gradient(
+            160px circle at var(--card-aura-x) var(--card-aura-y),
+            rgba(165, 243, 252, 0.12) 0%,
+            transparent 70%
+        );
+    opacity: 0;
+    transition: opacity 0.35s var(--ease-glisse);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.panel-card.has-aura::after {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panel-card::after {
+        display: none;
+    }
 }
 
 /* Panel 1 Geometry (527px x 609px in SVG) */
