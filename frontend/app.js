@@ -224,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Lock / Unlock Step 2 Helpers
     // -------------------------------------------------------------------------
     function lockStep2() {
+        document.body.classList.add("is-locked-theme");
         step2Card.classList.add("locked-state");
         step2Card.classList.remove("unlocked-celebration");
         if (step2LockShield) {
@@ -243,14 +244,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Wave Animation & Step 2 Unlock Sequence
     // -------------------------------------------------------------------------
     function triggerWaveUnlock() {
-        // 1. Play Wave Light Beam Animation
+        // 1. Play Center-Expanding Golden Radial Wave Animation
+        waveOverlay.style.display = "none";
+        void waveOverlay.offsetWidth; // restart CSS animation on re-verify
         waveOverlay.style.display = "block";
         setTimeout(() => {
             waveOverlay.style.display = "none";
-        }, 1300);
+        }, 1500);
 
-        // 2. Unlock Step 2 as the beam passes it (~300ms)
+        // 2. Restore full color & unlock Step 2 as the golden wave expands (~260ms)
         setTimeout(() => {
+            document.body.classList.remove("is-locked-theme");
+
             // Remove gray/locked state
             step2Card.classList.remove("locked-state");
             step2Card.classList.add("unlocked-celebration");

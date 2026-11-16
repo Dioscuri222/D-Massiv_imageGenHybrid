@@ -63,6 +63,40 @@ body {
     position: relative;
 }
 
+/* Monochrome Grey Theme Overlay before Login */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 1379px 1024px at 50% 50%, #3d4248 0%, #131518 100%);
+    opacity: 0;
+    transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.is-locked-theme::before {
+    opacity: 1;
+}
+
+.isolines-bg,
+.app-canvas {
+    transition: filter 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.isolines-bg {
+    filter: grayscale(0);
+}
+
+.app-canvas {
+    filter: grayscale(0);
+}
+
+body.is-locked-theme .isolines-bg,
+body.is-locked-theme .app-canvas {
+    filter: grayscale(1) saturate(0) contrast(0.97);
+}
+
 /* ==========================================================================
    AMBIENT BACKGROUND: FLOWING ISOLINES
    ========================================================================== */
