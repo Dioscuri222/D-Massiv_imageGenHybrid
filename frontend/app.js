@@ -112,6 +112,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const rawUrl = tunnelUrlInput.value.trim();
         const apiKey = apiKeyInput.value.trim();
 
+        // Allow localhost fallback only when opened locally
+        let cleanUrl = getNormalizedUrl(rawUrl);
+        if (!cleanUrl) {
+            const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            if (isLocalHost) {
+                cleanUrl = "http://127.0.0.1:8000";
+                tunnelUrlInput.value = cleanUrl;
+            } else {
+                isConnected = false;
+                verifiedApiKey = "";
+                lockStep2();
+                statusBox.className = "status-box status-error";
+                statusMessage.textContent = "URL Tunnel Gateway wajib diisi!";
+                tunnelUrlInput.focus();
+                return;
+            }
+        }
+
         if (!apiKey) {
             isConnected = false;
             verifiedApiKey = "";
@@ -122,12 +140,14 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Allow localhost fallback if blank
-        let cleanUrl = getNormalizedUrl(rawUrl);
-        if (!cleanUrl) {
-            // Check if local backend port 8000 is running
-            cleanUrl = "http://127.0.0.1:8000";
-            tunnelUrlInput.value = cleanUrl;
+        if (apiKey !== "HybridCloud") {
+            isConnected = false;
+            verifiedApiKey = "";
+            lockStep2();
+            statusBox.className = "status-box status-error";
+            statusMessage.textContent = "401 Unauthorized: Custom API Key salah! Gunakan password yang benar.";
+            apiKeyInput.focus();
+            return;
         }
 
         // Set Loading UI
@@ -142,7 +162,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const headers = {
                 "Accept": "application/json",
-                "X-API-Key": apiKey
+                "X-API-Key": apiKey,
+                "ngrok-skip-browser-warning": "true"
             };
 
             const response = await fetch(`${cleanUrl}/api/status`, {
@@ -309,7 +330,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-API-Key": verifiedApiKey
+                    "X-API-Key": verifiedApiKey,
+                    "ngrok-skip-browser-warning": "true"
                 },
                 body: JSON.stringify(payload)
             });
