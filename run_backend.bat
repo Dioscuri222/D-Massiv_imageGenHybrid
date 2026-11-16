@@ -58,6 +58,7 @@ if not errorlevel 1 (
 echo ============================================================
 echo    HYBRID IMAGE GENERATION - LOCAL GPU BACKEND
 echo    RTX 2050 4GB VRAM - Model Selector
+echo    Password API Key: HybridCloud
 echo ============================================================
 echo.
 echo  Pilih model yang ingin digunakan:
