@@ -6,5 +6,5 @@ echo ========================================================
 echo   Launching Frontend HTML Server on http://localhost:7860
 echo ========================================================
 start http://localhost:7860
-python -m http.server 7860 --directory "%~dp0frontend\html"
+python -m http.server 7860 --directory "%~dp0frontend"
 pause

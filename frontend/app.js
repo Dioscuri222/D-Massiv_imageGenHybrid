@@ -112,6 +112,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const rawUrl = tunnelUrlInput.value.trim();
         const apiKey = apiKeyInput.value.trim();
 
+        if (!apiKey) {
+            isConnected = false;
+            verifiedApiKey = "";
+            lockStep2();
+            statusBox.className = "status-box status-error";
+            statusMessage.textContent = "Custom API Key wajib diisi!";
+            apiKeyInput.focus();
+            return;
+        }
+
         // Allow localhost fallback if blank
         let cleanUrl = getNormalizedUrl(rawUrl);
         if (!cleanUrl) {
@@ -124,18 +134,16 @@ document.addEventListener("DOMContentLoaded", () => {
         btnVerifyKey.classList.add("btn-loading");
         btnVerifyKey.disabled = true;
         statusBox.className = "status-box status-idle";
-        statusMessage.textContent = "Menghubungi workstation GPU lokal...";
+        statusMessage.textContent = "Memverifikasi API Key & menghubungi workstation GPU lokal...";
 
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 12000);
 
             const headers = {
-                "Accept": "application/json"
+                "Accept": "application/json",
+                "X-API-Key": apiKey
             };
-            if (apiKey) {
-                headers["X-API-Key"] = apiKey;
-            }
 
             const response = await fetch(`${cleanUrl}/api/status`, {
                 method: "GET",
@@ -162,14 +170,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 triggerWaveUnlock();
 
             } else if (response.status === 401) {
+                isConnected = false;
+                verifiedApiKey = "";
+                lockStep2();
                 statusBox.className = "status-box status-error";
-                statusMessage.textContent = "401 Unauthorized: API Key tidak valid atau ditolak oleh server lokal.";
+                statusMessage.textContent = "401 Unauthorized: Custom API Key salah atau ditolak oleh server lokal.";
             } else {
+                isConnected = false;
+                verifiedApiKey = "";
+                lockStep2();
                 statusBox.className = "status-box status-error";
                 statusMessage.textContent = `Error HTTP ${response.status}: ${response.statusText}`;
             }
 
         } catch (err) {
+            isConnected = false;
+            verifiedApiKey = "";
+            lockStep2();
             statusBox.className = "status-box status-error";
             if (err.name === "AbortError") {
                 statusMessage.textContent = "Connection Timeout: Server GPU lokal tidak merespon (12s).";
@@ -181,6 +198,25 @@ document.addEventListener("DOMContentLoaded", () => {
             btnVerifyKey.disabled = false;
         }
     });
+
+    // -------------------------------------------------------------------------
+    // Lock / Unlock Step 2 Helpers
+    // -------------------------------------------------------------------------
+    function lockStep2() {
+        step2Card.classList.add("locked-state");
+        step2Card.classList.remove("unlocked-celebration");
+        if (step2LockShield) {
+            step2LockShield.style.display = "";
+            step2LockShield.style.opacity = "1";
+        }
+        promptInput.disabled      = true;
+        negPromptInput.disabled   = true;
+        stepsSlider.disabled      = true;
+        cfgSlider.disabled        = true;
+        resolutionSelect.disabled = true;
+        seedInput.disabled        = true;
+        btnGenerate.disabled      = true;
+    }
 
     // -------------------------------------------------------------------------
     // Wave Animation & Step 2 Unlock Sequence

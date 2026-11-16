@@ -14,7 +14,7 @@ set "HF_HUB_CACHE=%~dp0modelAI"
 set "DIFFUSERS_CACHE=%~dp0modelAI"
 set "HF_HUB_DISABLE_SYMLINKS_WARNING=1"
 if "%PORT%"=="" set PORT=8000
-if "%LOCAL_API_KEY%"=="" set LOCAL_API_KEY=sk-local-gpu-hybrid-2026
+if "%LOCAL_API_KEY%"=="" set LOCAL_API_KEY=HybridCloud
 
 if not exist "%HF_HOME%" mkdir "%HF_HOME%"
 

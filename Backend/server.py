@@ -30,7 +30,7 @@ import pipeline
 # ==============================================================================
 # ENVIRONMENT & SERVER CONFIGURATION (NETWORK ENGINEER)
 # ==============================================================================
-DEFAULT_API_KEY = os.getenv("LOCAL_API_KEY", "sk-local-gpu-hybrid-2026")
+DEFAULT_API_KEY = os.getenv("LOCAL_API_KEY", "HybridCloud")
 PORT = int(os.getenv("PORT", 8000))
 startup_time = time.time()
 
@@ -153,8 +153,8 @@ def generate_api_key(request: ApiKeyRequest):
 
 
 @app.get("/api/status")
-def get_status(api_key: Optional[str] = None):
-    """Cek kesehatan backend, ketersediaan GPU, status model, dan VRAM."""
+def get_status(api_key: str = Security(verify_api_key)):
+    """Cek kesehatan backend, ketersediaan GPU, status model, dan VRAM (Wajib API Key valid)."""
     cuda_available = torch.cuda.is_available()
 
     vram_info = {}
