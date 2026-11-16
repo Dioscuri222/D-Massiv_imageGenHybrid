@@ -40,6 +40,21 @@ if errorlevel 1 (
     echo.
 )
 
+REM Cek apakah PyTorch masih versi CPU-only padahal ada GPU NVIDIA
+nvidia-smi >nul 2>&1
+if not errorlevel 1 (
+    python -c "import sys, torch; sys.exit(0 if torch.version.cuda else 1)" >nul 2>&1
+    if errorlevel 1 (
+        echo ============================================================
+        echo  [!] Terdeteksi GPU NVIDIA, tetapi PyTorch yang terpasang adalah versi CPU-only!
+        echo      Mengganti PyTorch ke versi CUDA GPU ^(cu132^)...
+        echo ============================================================
+        pip uninstall -y torch torchvision torchaudio
+        pip install torch --index-url https://download.pytorch.org/whl/cu132
+        echo.
+    )
+)
+
 echo ============================================================
 echo    HYBRID IMAGE GENERATION - LOCAL GPU BACKEND
 echo    RTX 2050 4GB VRAM - Model Selector
