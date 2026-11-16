@@ -1,0 +1,14 @@
+# Byte-compiled / cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Folder penyimpanan bobot model AI lokal (~2.5 GB per model)
+# Folder modelAI tetap ada di repo, namun isi model yang di-download diabaikan
+modelAI/*
+!modelAI/.gitkeep

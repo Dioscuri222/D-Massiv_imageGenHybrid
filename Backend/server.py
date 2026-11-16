@@ -4,13 +4,23 @@ Menangani HTTP API endpoint, autentikasi API Key, dan koneksi CORS untuk Fronten
 """
 import os
 import io
+import sys
 import time
 import base64
 import secrets
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-from fastapi import FastAPI, HTTPException, Security, Header, status
+# Set utf-8 encoding for Windows console compatibility
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+# Pastikan folder Backend ada di sys.path saat dijalankan dari root project
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
+from fastapi import FastAPI, HTTPException, Security, Header, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -117,10 +127,10 @@ def load_initial_pipeline():
 @app.get("/")
 def root():
     return {
-        "service": "D-Massiv ImageGen Hybrid API",
+        "service": "Hybrid Image Generation - Local GPU Backend",
         "version": "2.0.0",
-        "status": "ok",
-        "current_model": pipeline.current_model_key or None,
+        "status": "online",
+        "current_model": pipeline.current_model_key or "none",
         "model_loading": pipeline.model_loading,
         "uptime_seconds": round(time.time() - startup_time, 2),
         "docs_url": "/docs"
@@ -391,4 +401,4 @@ def generate_image(
 if __name__ == "__main__":
     import uvicorn
     print(f"Starting server on http://0.0.0.0:{PORT}")
-    uvicorn.run("server:app", host="0.0.0.0", port=PORT, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

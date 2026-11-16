@@ -5,21 +5,30 @@ serta eksekusi inferensi gambar.
 """
 import os
 import gc
+import sys
 import time
 import threading
-import torch
-from PIL import Image
 from typing import Optional, Dict, Any, List, Tuple
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+# Set utf-8 encoding for Windows console compatibility
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # ==============================================================================
 # FOLDER MODEL CONFIGURATION
 # ==============================================================================
+# Harus di-set SEBELUM import torch/diffusers agar semua download masuk ke modelAI/
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CACHE_DIR = os.path.join(PROJECT_ROOT, "modelAI")
 os.makedirs(CACHE_DIR, exist_ok=True)
 os.environ["HF_HOME"] = CACHE_DIR
+os.environ["HF_HUB_CACHE"] = CACHE_DIR
+os.environ["DIFFUSERS_CACHE"] = CACHE_DIR
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+
+import torch
+from PIL import Image
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
 # ==============================================================================
 # MODEL REGISTRY — Model-model yang aman untuk 4GB VRAM (RTX 2050)
